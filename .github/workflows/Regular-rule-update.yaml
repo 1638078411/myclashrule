@@ -1,0 +1,148 @@
+name: Regular-rule-update
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  schedule:
+    - cron: "30 2/8 * * *"
+
+jobs:
+  Update-Regular-rule:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Git
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+          
+      - name: Download MainProxy rules
+        run: |
+          curl -o rules/MainProxy.txt https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/proxy.txt
+          echo "" > rules/MainProxy.list.new
+          while IFS= read -r line; 
+          do
+            domain=$(echo $line | sed "s/  - '//" | sed "s/'//" | sed 's/-//g' | sed "s/'//g" | sed "s/ //g")
+            if [[ $domain =~ ^\+\. ]]
+            then
+              # 去掉 "+." 前缀，并添加 "DOMAIN-SUFFIX,"
+              domain=${domain:2}
+              echo "DOMAIN-SUFFIX,$domain" >> rules/MainProxy.list.new
+            else
+              # 添加 "DOMAIN,"
+              echo "DOMAIN,$domain" >> rules/MainProxy.list.new
+            fi
+          done < <(tail -n +2 rules/MainProxy.txt)
+          mv -f rules/MainProxy.list.new rules/MainProxy.list
+          sed -i '/^$/d' rules/MainProxy.list
+          rm -f rules/MainProxy.txt
+          
+      - name: Download DirectDomain rules
+        run: |
+          curl -o rules/DirectDomain.txt https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/direct.txt
+          echo "" > rules/DirectDomain.list.new
+          while IFS= read -r line; 
+          do
+            domain=$(echo $line | sed "s/  - '//" | sed "s/'//" | sed 's/-//g' | sed "s/'//g" | sed "s/ //g")
+            if [[ $domain =~ ^\+\. ]]
+            then
+              # 去掉 "+." 前缀，并添加 "DOMAIN-SUFFIX,"
+              domain=${domain:2}
+              echo "DOMAIN-SUFFIX,$domain" >> rules/DirectDomain.list.new
+            else
+              # 添加 "DOMAIN,"
+              echo "DOMAIN,$domain" >> rules/DirectDomain.list.new
+            fi
+          done < <(tail -n +2 rules/DirectDomain.txt)
+          mv -f rules/DirectDomain.list.new rules/DirectDomain.list
+          sed -i '/^$/d' rules/DirectDomain.list
+          rm -f rules/DirectDomain.txt rules/DirectDomain.list.new
+
+      - name: Download GFWDomain rules
+        run: |
+          curl -o rules/GFWDomain.txt https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/gfw.txt
+          echo "" > rules/GFWDomain.list.new
+          while IFS= read -r line; 
+          do
+            domain=$(echo $line | sed "s/  - '//" | sed "s/'//" | sed 's/-//g' | sed "s/'//g" | sed "s/ //g")
+            if [[ $domain =~ ^\+\. ]]
+            then
+              # 去掉 "+." 前缀，并添加 "DOMAIN-SUFFIX,"
+              domain=${domain:2}
+              echo "DOMAIN-SUFFIX,$domain" >> rules/GFWDomain.list.new
+            else
+              # 添加 "DOMAIN,"
+              echo "DOMAIN,$domain" >> rules/GFWDomain.list.new
+            fi
+          done < <(tail -n +2 rules/GFWDomain.txt)
+          mv -f rules/GFWDomain.list.new rules/GFWDomain.list
+          sed -i '/^$/d' rules/GFWDomain.list
+          rm -f rules/GFWDomain.txt rules/GFWDomain.list.new
+
+
+      - name: Download ADDReject rules
+        run: |
+          curl -o rules/ADDReject.txt https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/reject.txt
+          echo "" > rules/ADDReject.list.new
+          while IFS= read -r line; 
+          do
+            domain=$(echo $line | sed "s/  - '//" | sed "s/'//" | sed 's/-//g' | sed "s/'//g" | sed "s/ //g")
+            if [[ $domain =~ ^\+\. ]]
+            then
+              # 去掉 "+." 前缀，并添加 "DOMAIN-SUFFIX,"
+              domain=${domain:2}
+              echo "DOMAIN-SUFFIX,$domain" >> rules/ADDReject.list.new
+            else
+              # 添加 "DOMAIN,"
+              echo "DOMAIN,$domain" >> rules/ADDReject.list.new
+            fi
+          done < <(tail -n +2 rules/ADDReject.txt)
+          mv -f rules/ADDReject.list.new rules/ADDReject.list
+          sed -i '/^$/d' rules/ADDReject.list
+          rm -f rules/ADDReject.txt rules/ADDReject.list.new
+
+      - name: Download TldNoCN rules
+        run: |
+          curl -o rules/TldNoCN.txt https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/tld-not-cn.txt
+          echo "" > rules/TldNoCN.list.new
+          while IFS= read -r line; 
+          do
+            domain=$(echo $line | sed "s/  - '//" | sed "s/'//" | sed 's/-//g' | sed "s/'//g" | sed "s/ //g")
+            if [[ $domain =~ ^\+\. ]]
+            then
+              # 去掉 "+." 前缀，并添加 "DOMAIN-SUFFIX,"
+              domain=${domain:2}
+              echo "DOMAIN-SUFFIX,$domain" >> rules/TldNoCN.list.new
+            else
+              # 添加 "DOMAIN,"
+              echo "DOMAIN,$domain" >> rules/TldNoCN.list.new
+            fi
+          done < <(tail -n +2 rules/TldNoCN.txt)
+          mv -f rules/TldNoCN.list.new rules/TldNoCN.list
+          sed -i '/^$/d' rules/TldNoCN.list
+          rm -f rules/TldNoCN.txt rules/TldNoCN.list.new
+
+      - name: Download GeoIP2-CN rules
+        run: |
+          wget https://raw.githubusercontent.com/Hackl0us/GeoIP2-CN/release/CN-ip-cidr.txt -O GeoIP2-CN.txt
+          sed -i '/^[0-9.]\+\/[0-9]\+$/!d' GeoIP2-CN.txt
+          sed -i 's/^/IP-CIDR,/' GeoIP2-CN.txt
+          sed -i 's/$/,no-resolve/' GeoIP2-CN.txt
+          mv -f GeoIP2-CN.txt rules/GeoIP2-CN.list
+          rm -f GeoIP2-CN.txt
+
+      - name: Add changes to the repository
+        run: |
+          git add .
+          git status
+
+      - name: Commit and push changes
+        run: |
+          git commit -m "Loyalsoldier-rule-update" -a
+          git push

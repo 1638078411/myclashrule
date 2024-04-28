@@ -1,0 +1,178 @@
+name: Special-rule-update
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  schedule:
+    - cron: "30 */8 * * *"
+
+jobs:
+  Update-Special-rule:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Git
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+          
+      - name: Download LLM&MicrosoftCopilot rules
+        run: |
+          curl -o rules/app/OpenAI.list https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/OpenAI/OpenAI.list
+          echo >> rules/app/OpenAI.list
+          curl -o rules/app/Claude.list https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Claude/Claude.list
+          echo >> rules/app/Claude.list
+          curl -o rules/app/Gemini.list https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Gemini/Gemini.list
+          echo >> rules/app/Gemini.list
+          curl -o rules/app/MicrosoftCopilot.list https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Copilot/Copilot.list
+          echo "DOMAIN,designer.microsoft.com" >> rules/app/MicrosoftCopilot.list
+          echo "DOMAIN,edge.microsoft.com" >> rules/app/MicrosoftCopilot.list
+          echo "DOMAIN-SUFFIX,bing.com" >> rules/app/MicrosoftCopilot.list
+          echo "DOMAIN-SUFFIX,events.data.microsoft.com" >> rules/app/MicrosoftCopilot.list
+          cat rules/app/OpenAI.list rules/app/Claude.list rules/app/Gemini.list > rules/app/LLMProxy.list.new
+          echo >> rules/app/LLMProxy.list.new
+          echo "# coze" >> rules/app/LLMProxy.list.new
+          echo "DOMAIN-SUFFIX,coze.com" >> rules/app/LLMProxy.list.new
+          mv -f rules/app/LLMProxy.list.new rules/app/LLMProxy.list
+          rm -f rules/app/OpenAI.list rules/app/Claude.list rules/app/Gemini.list
+          
+      - name: Download GameDL rules
+        run: |
+          curl -o rules/app/SteamCN-D.list https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/SteamCN/SteamCN.list
+          echo >> rules/app/SteamCN-D.list
+          cat rules/app/SteamCN-D.list rules/app/GameCN.list rules/app/SteamCNIP.list > rules/app/GameDL.list.new
+          mv -f rules/app/GameDL.list.new rules/app/GameDL.list
+          rm -f rules/app/SteamCN-D.list
+
+      - name: Download CNAPP rules
+        run: |
+          curl -o rules/app/Meituan.list https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/MeiTuan/MeiTuan.list
+          echo >> rules/app/Meituan.list
+          curl -o rules/app/WeChat.list https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/WeChat/WeChat.list
+          echo >> rules/app/WeChat.list
+          cat rules/app/Meituan.list rules/app/WeChat.list > rules/app/CNAPP.list.new
+          echo "# other" >> rules/app/CNAPP.list.new
+          echo "DOMAIN-SUFFIX,hcaptcha.com" >> rules/app/CNAPP.list.new
+          mv -f rules/app/CNAPP.list.new rules/app/CNAPP.list
+          rm -f rules/app/Meituan.list rules/app/WeChat.list
+          
+      - name: Download USAPP rules
+        run: |
+          curl -o rules/app/TwitterAndX.list https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Twitter/Twitter.list
+          echo >> rules/app/TwitterAndX.list
+          curl -o rules/app/Instagram.list https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Instagram/Instagram.list
+          echo >> rules/app/Instagram.list
+          cat rules/app/TwitterAndX.list rules/app/Instagram.list > rules/app/USAPP.list.new
+          echo "# other" >> rules/app/CNAPP.list.new
+          echo "DOMAIN-SUFFIX,t-mobile.com" >> rules/app/USAPP.list.new
+          echo "DOMAIN-SUFFIX,ultramobile.com" >> rules/app/USAPP.list.new
+          mv -f rules/app/USAPP.list.new rules/app/USAPP.list
+          rm -f rules/app/TwitterAndX.list rules/app/Instagram.list
+
+      - name: Download UKAPP rules
+        run: |
+          echo "# other" >> rules/app/UKAPP.list.new
+          echo "DOMAIN-SUFFIX,vodafone.co.uk" >> rules/app/UKAPP.list.new
+          echo "DOMAIN-SUFFIX,giffgaff.com" >> rules/app/UKAPP.list.new
+          mv -f rules/app/UKAPP.list.new rules/app/UKAPP.list
+      
+      - name: Download eBay rules
+        run: |
+          curl -o rules/app/eBay.list.new https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/eBay/eBay.list
+          echo "DOMAIN-KEYWORD,ebay" >> rules/app/eBay.list.new
+          echo "DOMAIN-KEYWORD,e-bay" >> rules/app/eBay.list.new
+          echo "DOMAIN-SUFFIX,perfdrive.com" >> rules/app/eBay.list.new
+          echo "DOMAIN-SUFFIX,forter.com" >> rules/app/eBay.list.new
+          echo "DOMAIN-KEYWORD,forter" >> rules/app/eBay.list.new
+          mv -f rules/app/eBay.list.new rules/app/eBay.list
+
+      - name: Download Telegram rules
+        run: |
+          curl -o rules/app/telegramcidr.txt https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/telegramcidr.txt
+          echo "" > rules/app/telegramcidr.list.new
+          while IFS= read -r line; 
+          do
+            ip=$(echo $line | sed "s/  - '//" | sed "s/'//" | sed 's/-//g' | sed "s/'//g"| sed "s/ //g")
+            if [[ $ip =~ .*:.* ]]
+            then
+              # 是IPv6地址，添加"IP-CIDR6,"
+              echo "IP-CIDR6,$ip" >> rules/app/telegramcidr.list.new
+            else
+              # 是IPv4地址，添加"IP-CIDR,"
+              echo "IP-CIDR,$ip" >> rules/app/telegramcidr.list.new
+            fi
+          done < <(tail -n +2 rules/app/telegramcidr.txt)
+          mv -f rules/app/telegramcidr.list.new rules/app/telegramcidr.list
+          sed -i '/^$/d' rules/app/telegramcidr.list
+          rm -f rules/app/telegramcidr.list.new rules/app/telegramcidr.txt
+          curl -o rules/app/telegramdomain.list https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Telegram/Telegram.list
+          cat rules/app/telegramcidr.list rules/app/telegramdomain.list > rules/app/telegram.list.new
+          mv -f rules/app/telegram.list.new rules/app/telegram.list
+          rm -f rules/app/telegramcidr.list rules/app/telegramdomain.list
+
+      - name: Download AppleOrIcloud rules
+        run: |
+          curl -o rules/app/APPLE.txt https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/apple.txt
+          echo "" > rules/app/AppleOrIcloud.list.new
+          while IFS= read -r line; 
+          do
+            domain=$(echo $line | sed "s/  - '//" | sed "s/'//" | sed 's/-//g' | sed "s/'//g" | sed "s/ //g")
+            if [[ $domain =~ ^\+\. ]]
+            then
+              # 去掉 "+." 前缀，并添加 "DOMAIN-SUFFIX,"
+              domain=${domain:2}
+              echo "DOMAIN-SUFFIX,$domain" >> rules/app/AppleOrIcloud.list.new
+            else
+              # 添加 "DOMAIN,"
+              echo "DOMAIN,$domain" >> rules/app/AppleOrIcloud.list.new
+            fi
+          done < <(tail -n +2 rules/app/APPLE.txt)
+          curl -o rules/app/ICLOUD.txt https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/icloud.txt
+          echo "" > rules/app/AppleOrIcloud.list.new
+          while IFS= read -r line; 
+          do
+            domain=$(echo $line | sed "s/  - '//" | sed "s/'//" | sed 's/-//g' | sed "s/'//g" | sed "s/ //g")
+            if [[ $domain =~ ^\+\. ]]
+            then
+              # 去掉 "+." 前缀，并添加 "DOMAIN-SUFFIX,"
+              domain=${domain:2}
+              echo "DOMAIN-SUFFIX,$domain" >> rules/app/AppleOrIcloud.list.new
+            else
+              # 添加 "DOMAIN,"
+              echo "DOMAIN,$domain" >> rules/app/AppleOrIcloud.list.new
+            fi
+          done < <(tail -n +2 rules/app/ICLOUD.txt)
+          mv -f rules/app/AppleOrIcloud.list.new rules/app/AppleOrIcloud.list
+          sed -i '/^$/d' rules/app/AppleOrIcloud.list
+          rm -f rules/app/APPLE.txt rules/app/ICLOUD.txt rules/app/AppleOrIcloud.list.new
+        
+      - name: Download cloudflare rules
+        run: |
+          wget https://www.cloudflare.com/ips-v4 -O rules/app/cfv4.txt
+          sed -i '/^[0-9.]\+\/[0-9]\+$/!d' rules/app/cfv4.txt
+          sed -i 's/^/IP-CIDR,/' rules/app/cfv4.txt
+          sed -i 's/$/,no-resolve/' rules/app/cfv4.txt
+          sed -i 's/$/\n/' rules/app/cfv4.txt
+          wget https://www.cloudflare.com/ips-v6 -O rules/app/cfv6.txt
+          sed -i '/^[0-9a-fA-F:]\+\/[0-9]\+$/!d' rules/app/cfv6.txt
+          sed -i 's/^/IP-CIDR6,/' rules/app/cfv6.txt
+          sed -i 's/$/,no-resolve/' rules/app/cfv6.txt
+          sed -i 's/$/\n/' rules/app/cfv6.txt
+          cat rules/app/cfv4.txt rules/app/cfv6.txt > rules/app/cloudflare.list.new
+          mv -f rules/app/cloudflare.list.new rules/app/cloudflare.list
+          rm -f rules/app/cfv4.txt rules/app/cfv6.txt
+
+      - name: Add changes to the repository
+        run: |
+          git add .
+          git status
+
+      - name: Commit and push changes
+        run: |
+          git commit -m "Special-rule-update" -a
+          git push

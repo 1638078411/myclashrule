@@ -1,0 +1,23 @@
+# github gerop
+DOMAIN-KEYWORD,ghcr1production
+DOMAIN-SUFFIX,ghcr1production.blob.core.windows.net
+DOMAIN-SUFFIX,repo.anaconda.com
+
+# v2ex
+DOMAIN-KEYWORD,v2ex
+DOMAIN-SUFFIX,v2ex.com
+
+# ffq论坛
+DOMAIN-SUFFIX,ffqla.net
+# DNS污染域名
+DOMAIN-SUFFIX,help.minecraft.net
+# DNSCheck
+DOMAIN-SUFFIX,ipleak.net
+# 部分国外网盘
+DOMAIN-KEYWORD,teracloud
+DOMAIN-KEYWORD,infini-cloud
+DOMAIN-SUFFIX,filen.io
+
+IP-CIDR,208.54.0.0/16
+IP-CIDR,66.94.0.0/19
+IP-CIDR,206.29.177.36/32
