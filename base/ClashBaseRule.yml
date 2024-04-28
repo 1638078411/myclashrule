@@ -120,6 +120,7 @@ dns:
       - "+.segment.io"
       - "+.sentry.io"
       - "+.stripe.com"
+      - "+.t.me"
       - "+.twitter.com"
       - "+.usefathom.com"
       - "+.v2ex.com"
